@@ -134,6 +134,7 @@ MonoBehaviour:
   speed: 5
   minDistance: -20
   Isfinish: 0
+  boom: {fileID: 5324424243108659918, guid: e98145eade2f3b340ad8fbfe577f9401, type: 3}
 --- !u!58 &6644753396393344767
 CircleCollider2D:
   m_ObjectHideFlags: 0

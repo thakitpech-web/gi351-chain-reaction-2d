@@ -4,7 +4,6 @@ public class bullet : MonoBehaviour
 {
     public shoot Shoot;
     public object_Walk Object;
-    public GameObject bomb;
     public void Start()
     {
       Shoot = FindAnyObjectByType<shoot>();
@@ -19,7 +18,7 @@ public class bullet : MonoBehaviour
         }
         if (collision.gameObject.CompareTag("object"))
         {
-            GameObject effect = Instantiate(bomb,transform.position,Quaternion.identity);
+            GameObject effect = Instantiate(Object.boom, transform.position,Quaternion.identity);
             Destroy(effect,0.4f);
             Destroy(collision.gameObject);
             Shoot.hasShoot = true;

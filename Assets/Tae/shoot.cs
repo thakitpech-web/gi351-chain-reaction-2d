@@ -1,5 +1,4 @@
 using UnityEngine;
-using System.Collections;
 
 public class shoot : MonoBehaviour
 {
@@ -11,13 +10,15 @@ public class shoot : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+
     }
 
-    
+
 
     // Update is called once per frame
     void Update()
     {
+
         if (hasShoot == true)
         {
             if (Input.GetMouseButtonDown(0))
@@ -26,13 +27,13 @@ public class shoot : MonoBehaviour
             }
         }
     }
-   public void Shoot()
+    public void Shoot()
     {
         shooting = Instantiate(bullet, Fire.position, Fire.rotation);
         rb = shooting.GetComponent<Rigidbody2D>();
         if (rb != null)
         {
-           rb.linearVelocity = (Vector2)Fire.up * 10;
+            rb.linearVelocity = (Vector2)Fire.up * 10;
         }
         hasShoot = false;
     }
@@ -45,3 +46,4 @@ public class shoot : MonoBehaviour
         }
     }
 }
+

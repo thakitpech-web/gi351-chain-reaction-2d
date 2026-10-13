@@ -12,6 +12,7 @@ public class object_Walk : MonoBehaviour
     public int speed;
     public float minDistance;
     public bool Isfinish = false;
+    public GameObject boom;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
 
 
