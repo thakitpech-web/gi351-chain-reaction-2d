@@ -6,6 +6,9 @@ TagManager:
   tags:
   - wall
   - object
+  - Circle
+  - Square
+  - Triangle
   layers:
   - Default
   - TransparentFX
