@@ -165,3 +165,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0c7c70c09d45e9c40bb4cf1e47ac06df, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Shoot: {fileID: 0}
+  Object: {fileID: 0}
+  bomb: {fileID: 5324424243108659918, guid: e98145eade2f3b340ad8fbfe577f9401, type: 3}
