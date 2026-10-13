@@ -19,7 +19,7 @@ public class bullet : MonoBehaviour
         if (collision.gameObject.CompareTag("object"))
         {
             GameObject effect = Instantiate(Object.boom, transform.position,Quaternion.identity);
-            Destroy(effect,0.4f);
+            Destroy(effect,2f);
             Destroy(collision.gameObject);
             Shoot.hasShoot = true;
             Destroy(gameObject);
