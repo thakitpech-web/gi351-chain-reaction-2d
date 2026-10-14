@@ -24,12 +24,11 @@ public class tank_walk : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        Debug.Log(cureent);
         float x = Input.GetAxisRaw("Horizontal");
         float y = Input.GetAxisRaw("Vertical");
 
         moveinput = new Vector2(x, y).normalized;
-        if(cureent >= 3)
+        if(cureent >= 5)
         {
             Scene currentScene = SceneManager.GetActiveScene();
             SceneManager.LoadScene(currentScene.name);
