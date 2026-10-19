@@ -314,6 +314,7 @@ GameObject:
   - component: {fileID: 2507086891429847035}
   - component: {fileID: 5866551760240544563}
   - component: {fileID: 2925929879994480214}
+  - component: {fileID: 1710380822992355355}
   m_Layer: 0
   m_Name: tank_body
   m_TagString: Player
@@ -407,6 +408,12 @@ MonoBehaviour:
   speed: 8
   rb: {fileID: 2925929879994480214}
   cureent: 0
+  Isfinish1: 0
+  Isfinish2: 0
+  Isfinish3: 0
+  Isfinish4: 0
+  Isfinish5: 0
+  Isfinish6: 0
 --- !u!50 &2925929879994480214
 Rigidbody2D:
   serializedVersion: 5
@@ -434,3 +441,18 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0
+--- !u!114 &1710380822992355355
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5939738631272180559}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5cbfd170e0db962488a0a922f13ca34b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxHealth: 3
+  invincibleTime: 2
+  blinkInterval: 0.1
