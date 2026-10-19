@@ -62,6 +62,7 @@ public class bomb_effect : MonoBehaviour
     }
     private void OnTriggerExit2D(Collider2D collision)
     {
+
         if (CompareTag("Circle") && collision.CompareTag("Square") || CompareTag("Square") && collision.CompareTag("Circle"))
         {
             tank.Isfinish1 = false;
@@ -92,6 +93,13 @@ public class bomb_effect : MonoBehaviour
         {
             tank.Isfinish6= false;
 
+        }
+        if (collision.gameObject.CompareTag("object"))
+        {
+            object_Walk target = collision.GetComponent<object_Walk>();
+            GameObject effect = Instantiate(target.boom, collision.transform.position, Quaternion.identity);
+            Destroy(effect, 0.4f);
+            Destroy(collision.gameObject.gameObject);
         }
     }
     private void OnTriggerStay2D(Collider2D collision)

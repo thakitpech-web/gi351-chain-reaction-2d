@@ -15,7 +15,7 @@ public class object_Walk : MonoBehaviour
     public GameObject boom;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
 
-
+   
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -57,7 +57,14 @@ public class object_Walk : MonoBehaviour
             }
         }
     void OnCollisionEnter2D(Collision2D col) { HandleHit(col); }
-    void OnCollisionStay2D(Collision2D col) { HandleHit(col); }
+    void OnCollisionStay2D(Collision2D col)
+    {
+        if (col.gameObject.TryGetComponent(out player_health player))
+        {
+            player.takeDamage(1);
+        }
+        HandleHit(col); 
+    }
 
     void HandleHit(Collision2D col)
     {

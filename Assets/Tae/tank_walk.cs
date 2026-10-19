@@ -4,7 +4,9 @@ using UnityEngine.SceneManagement;
 
 public class tank_walk : MonoBehaviour
 {
+
     public int speed;
+
     public Rigidbody2D rb;
     public int cureent = 0;
     public bool Isfinish1 = false;
@@ -20,7 +22,7 @@ public class tank_walk : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
     }
-
+   
     // Update is called once per frame
     void Update()
     {
