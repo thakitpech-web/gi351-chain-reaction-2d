@@ -5,6 +5,7 @@
 public class Bullet : MonoBehaviour
 {
     public float offscreenMargin = 1f;  // ออกนอกจอเกินระยะนี้แล้วลบทิ้ง
+    [Range(0f, 1f)] public float hitShake = 1f;   // จอสั่นตอนยิงโดน dot
 
     Rigidbody2D rb;
     bool hit;
@@ -45,6 +46,7 @@ public class Bullet : MonoBehaviour
         if (other.TryGetComponent(out ChainDot dot))
         {
             hit = true;
+            ScreenShake.Add(hitShake);
             dot.Explode();
             Destroy(gameObject);
         }

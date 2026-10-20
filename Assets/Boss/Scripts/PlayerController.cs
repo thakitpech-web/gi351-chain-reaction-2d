@@ -14,11 +14,13 @@ public class PlayerController : MonoBehaviour
     public Transform firePoint;         // (ไม่ใส่ก็ได้) จุดที่กระสุนออก ถ้าไม่ใส่จะออกจากกลางตัว
     public float bulletSpeed = 12f;
     public float fireCooldown = 0.2f;
+    [Range(0f, 1f)] public float shootShake = 0.1f;
 
     [Header("Health")]
     public int maxHealth = 3;
     public float invincibleTime = 1.5f;
     public float blinkInterval = 0.1f;
+    [Range(0f, 1f)] public float hitShake = 0.6f;
 
     Rigidbody2D rb;
     SpriteRenderer[] renderers;
@@ -81,6 +83,7 @@ public class PlayerController : MonoBehaviour
         Vector3 spawnPos = firePoint != null ? firePoint.position : transform.position;
         Bullet bullet = Instantiate(bulletPrefab, spawnPos, Quaternion.Euler(0f, 0f, angle));
         bullet.Launch(direction * bulletSpeed);
+        ScreenShake.Add(shootShake);
     }
 
     // ---------- เลือด ----------
@@ -100,6 +103,7 @@ public class PlayerController : MonoBehaviour
 
         health -= damage;
         GameManager.Instance.OnPlayerHealthChanged(health, maxHealth);
+        ScreenShake.Add(hitShake);
 
         if (health <= 0)
         {

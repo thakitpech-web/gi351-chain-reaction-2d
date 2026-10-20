@@ -39,6 +39,9 @@ public class GameManager : MonoBehaviour
     public int ammoPerLevel = 1;            // ยิงได้กี่นัดต่อด่าน
     public float retryDelay = 1f;           // แพ้แล้วรอกี่วินาทีก่อนเริ่มด่านใหม่อัตโนมัติ (0 = ทันที)
 
+    [Header("Juice")]
+    [Range(0f, 1f)] public float chainRumble = 0.35f;   // จอสั่นเบาๆ ค้างไว้ตลอดที่ยังมีระเบิดอยู่บนจอ
+
     [Header("Levels")]
     public List<LevelData> levels = new List<LevelData>
     {
@@ -54,7 +57,7 @@ public class GameManager : MonoBehaviour
 
     public Rect PlayArea { get; private set; }
 
-    enum State { Playing, Result }
+    enum State { Playing, Result, Loading }
 
     State state;
     int levelIndex;
@@ -83,10 +86,11 @@ public class GameManager : MonoBehaviour
     void Update()
     {
         UpdatePlayArea();
+        ScreenShake.SetRumble(explosions.Count > 0 ? chainRumble : 0f);
 
         if (Input.GetKeyDown(KeyCode.R))
         {
-            StartLevel(levelIndex);
+            GoToLevel(levelIndex);
             return;
         }
 
@@ -99,14 +103,22 @@ public class GameManager : MonoBehaviour
         else if (state == State.Result && !passed)
         {
             // แพ้ -> เริ่มด่านเดิมใหม่เองอัตโนมัติ
-            if (Time.time >= retryTime) StartLevel(levelIndex);
+            if (Time.time >= retryTime) GoToLevel(levelIndex);
         }
         else if (state == State.Result &&
                  (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.Return)))
         {
-            if (levelIndex + 1 < levels.Count) StartLevel(levelIndex + 1);
-            else StartLevel(0);
+            if (levelIndex + 1 < levels.Count) GoToLevel(levelIndex + 1);
+            else GoToLevel(0);
         }
+    }
+
+    // จอดำ -> เริ่มด่าน -> จอสว่างกลับ
+    void GoToLevel(int index)
+    {
+        if (state == State.Loading) return;
+        state = State.Loading;
+        SceneFader.Transition(() => StartLevel(index));
     }
 
     // ขอบเขตเล่น = ขนาดกล้อง (orthographic) หักขอบ
@@ -115,7 +127,7 @@ public class GameManager : MonoBehaviour
         Camera cam = Camera.main;
         float halfH = cam.orthographicSize;
         float halfW = halfH * cam.aspect;
-        Vector2 c = cam.transform.position;
+        Vector2 c = (Vector2)cam.transform.position - ScreenShake.Offset;   // ไม่ให้ขอบสั่นตามกล้อง
         PlayArea = Rect.MinMaxRect(
             c.x - halfW + edgePadding, c.y - halfH + edgePadding,
             c.x + halfW - edgePadding, c.y + halfH - edgePadding);
@@ -142,6 +154,7 @@ public class GameManager : MonoBehaviour
 
         player.ResetForLevel(playerStart);
         state = State.Playing;
+        BackgroundFx.SetLevel(levelIndex);
 
         ui.ShowLevel(levelIndex + 1, levels.Count);
         ui.ShowScore(exploded, CurrentLevel.goal, totalDots);
@@ -187,6 +200,7 @@ public class GameManager : MonoBehaviour
 
     void Fail(string message)
     {
+        if (state == State.Loading) return;     // กำลังเปลี่ยนด่านอยู่แล้ว
         state = State.Result;
         passed = false;
         retryTime = Time.time + retryDelay;

@@ -11,6 +11,7 @@ public class Explosion : MonoBehaviour
     public float shrinkTime = 0.4f;
     public float rotateSpeed = 0f;   // องศา/วินาที (ใช้กับสามเหลี่ยม/สี่เหลี่ยมให้หมุนกวาด)
     [Range(0f, 1f)] public float alpha = 0.5f;
+    [Range(0f, 1f)] public float shake = 0.4f;  // จอสั่นตอนเกิดระเบิด (สะสมเมื่อระเบิดต่อกันหลายลูก)
 
     SpriteRenderer sr;
     float timer;
@@ -21,6 +22,13 @@ public class Explosion : MonoBehaviour
         GetComponent<Rigidbody2D>().bodyType = RigidbodyType2D.Kinematic;
         transform.localScale = Vector3.one * 0.01f;
         GameManager.Instance.RegisterExplosion(this);
+        ScreenShake.Add(shake);
+    }
+
+    // Start มาหลัง SetColor แล้ว จะได้สีจริงของระเบิด
+    void Start()
+    {
+        BackgroundFx.OnExplosion(transform.position, sr.color);
     }
 
     void OnDestroy()
