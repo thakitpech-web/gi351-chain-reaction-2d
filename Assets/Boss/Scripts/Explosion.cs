@@ -67,7 +67,7 @@ public class Explosion : MonoBehaviour
     // อะไรที่เป็น ChainDot แตะระเบิด -> ระเบิดต่อ (chain reaction)
     void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.TryGetComponent(out ChainDot dot))
-            dot.Explode();
+        if (other.TryGetComponent(out ChainDot dot) && dot.Explode())
+            ChainLink.Spawn(transform.position, dot.transform.position, sr.color);
     }
 }

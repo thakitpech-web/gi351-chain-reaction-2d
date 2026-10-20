@@ -6,8 +6,15 @@ public class Bullet : MonoBehaviour
 {
     public float offscreenMargin = 1f;  // ออกนอกจอเกินระยะนี้แล้วลบทิ้ง
     [Range(0f, 1f)] public float hitShake = 1f;   // จอสั่นตอนยิงโดน dot
+    public float hitStop = 0.06f;                 // หยุดเวลาแว้บตอนยิงโดน (วินาที)
+
+    [Header("Trail")]
+    public float trailTime = 0.12f;
+    [Range(0f, 1f)] public float trailAlpha = 0.8f;
+    public float trailWidth = 0.8f;     // เทียบกับขนาดกระสุน
 
     Rigidbody2D rb;
+    TrailRenderer trail;
     bool hit;
 
     void Awake()
@@ -15,6 +22,34 @@ public class Bullet : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         rb.bodyType = RigidbodyType2D.Kinematic;
         GameManager.Instance.RegisterBullet(this);
+        BuildTrail();
+    }
+
+    void BuildTrail()
+    {
+        SpriteRenderer sr = GetComponent<SpriteRenderer>();
+
+        // อยู่ใน child แยก จะได้ปล่อยให้ค่อยๆ จางเองตอนกระสุนโดน
+        trail = new GameObject("Trail").AddComponent<TrailRenderer>();
+        trail.transform.SetParent(transform, false);
+        trail.sharedMaterial = FxMaterial.Sprite;
+        trail.time = trailTime;
+        trail.minVertexDistance = 0.05f;
+        trail.widthCurve = AnimationCurve.Linear(0f, 1f, 1f, 0f);
+
+        float size = sr != null && sr.sprite != null ? sr.sprite.bounds.size.x : 1f;
+        trail.widthMultiplier = size * transform.localScale.x * trailWidth;
+
+        Color c = sr != null ? sr.color : Color.white;
+        c.a = trailAlpha;
+        trail.startColor = c;
+        c.a = 0f;
+        trail.endColor = c;
+        if (sr != null)
+        {
+            trail.sortingLayerID = sr.sortingLayerID;
+            trail.sortingOrder = sr.sortingOrder - 1;
+        }
     }
 
     void OnDestroy()
@@ -47,7 +82,12 @@ public class Bullet : MonoBehaviour
         {
             hit = true;
             ScreenShake.Add(hitShake);
+            TimeFx.HitStop(hitStop);
             dot.Explode();
+
+            trail.transform.SetParent(null, true);
+            trail.autodestruct = true;
+            trail.emitting = false;
             Destroy(gameObject);
         }
     }

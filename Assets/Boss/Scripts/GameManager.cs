@@ -41,6 +41,11 @@ public class GameManager : MonoBehaviour
 
     [Header("Juice")]
     [Range(0f, 1f)] public float chainRumble = 0.35f;   // จอสั่นเบาๆ ค้างไว้ตลอดที่ยังมีระเบิดอยู่บนจอ
+    public float spawnStartDelay = 0.2f;    // รอจอสว่างก่อนค่อยเริ่มโผล่
+    public float spawnSpread = 0.6f;        // dot ใกล้กลางจอโผล่ก่อน ไกลสุดโผล่ช้ากว่าเท่านี้ (วินาที)
+    [Range(0.05f, 1f)] public float goalSlowMo = 0.3f;  // ถึง goal แล้วเวลาช้าลงเหลือเท่านี้
+    public float goalSlowMoHold = 0.6f;     // ค้างช้าไว้นานเท่าไหร่ (วินาทีจริง)
+    public float goalSlowMoRecover = 0.4f;  // ค่อยๆ กลับเป็นปกติในกี่วินาที
 
     [Header("Levels")]
     public List<LevelData> levels = new List<LevelData>
@@ -136,6 +141,7 @@ public class GameManager : MonoBehaviour
     void StartLevel(int index)
     {
         levelIndex = index;
+        TimeFx.ResetTime();
 
         foreach (ChainDot d in dots) if (d != null) Destroy(d.gameObject);
         foreach (Explosion e in explosions) if (e != null) Destroy(e.gameObject);
@@ -148,6 +154,7 @@ public class GameManager : MonoBehaviour
         SpawnDots(circleDot, CurrentLevel.circles, playerStart);
         SpawnDots(triangleDot, CurrentLevel.triangles, playerStart);
         SpawnDots(squareDot, CurrentLevel.squares, playerStart);
+        StaggerSpawn(playerStart);
         totalDots = dots.Count;
         exploded = 0;
         ammoLeft = ammoPerLevel;
@@ -173,6 +180,18 @@ public class GameManager : MonoBehaviour
 
             dots.Add(Instantiate(prefab, pos, Quaternion.Euler(0f, 0f, Random.Range(0f, 360f))));
         }
+    }
+
+    // ทยอยเด้งโผล่จากกลางจอออกไปเป็นวง
+    void StaggerSpawn(Vector2 center)
+    {
+        float maxDist = 0.01f;
+        foreach (ChainDot d in dots)
+            maxDist = Mathf.Max(maxDist, Vector2.Distance(d.transform.position, center));
+
+        foreach (ChainDot d in dots)
+            d.spawnDelay = spawnStartDelay +
+                           Vector2.Distance(d.transform.position, center) / maxDist * spawnSpread;
     }
 
     Vector2 RandomPoint()
@@ -232,6 +251,10 @@ public class GameManager : MonoBehaviour
         dots.Remove(dot);
         exploded++;
         ui.ShowScore(exploded, CurrentLevel.goal, totalDots);
+
+        // ลูกที่ทำให้ถึง goal พอดี -> slow-mo
+        if (exploded == CurrentLevel.goal)
+            TimeFx.SlowMo(goalSlowMo, goalSlowMoHold, goalSlowMoRecover);
     }
 
     public void RegisterExplosion(Explosion e) => explosions.Add(e);

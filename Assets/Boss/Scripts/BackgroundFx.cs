@@ -111,7 +111,7 @@ public class BackgroundFx : MonoBehaviour
         hBuffer = new Vector3[cols];
         vBuffer = new Vector3[rows];
 
-        if (lineMaterial == null) lineMaterial = new Material(Shader.Find("Sprites/Default"));
+        if (lineMaterial == null) lineMaterial = FxMaterial.Sprite;
 
         hLines = new LineRenderer[rows];
         for (int j = 0; j < rows; j++) hLines[j] = CreateLine("H" + j, cols);
