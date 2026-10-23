@@ -71,11 +71,17 @@ public class GameManager : MonoBehaviour
     int ammoLeft;
     bool passed;
     float retryTime;
+    bool offeringAd;        // แพ้แล้วกำลังให้เลือก ดูโฆษณา(+1 กระสุน) / Retry
+    bool usedAdContinue;    // ดูโฆษณาต่อชีวิตได้ด่านละครั้ง
+    bool adShowing;         // กำลังรอ interstitial ปิด
     readonly List<ChainDot> dots = new List<ChainDot>();
     readonly List<Explosion> explosions = new List<Explosion>();
     readonly List<Bullet> bullets = new List<Bullet>();
 
     LevelData CurrentLevel => levels[levelIndex];
+
+    // จบด่านแล้ว (ผ่าน/แพ้/กำลังเปลี่ยนด่าน) -> player ไม่โดน damage
+    public bool IsPlaying => state == State.Playing;
 
     void Awake()
     {
@@ -92,6 +98,7 @@ public class GameManager : MonoBehaviour
     {
         UpdatePlayArea();
         ScreenShake.SetRumble(explosions.Count > 0 ? chainRumble : 0f);
+        if (adShowing) return;
 
         if (Input.GetKeyDown(KeyCode.R))
         {
@@ -107,15 +114,26 @@ public class GameManager : MonoBehaviour
         }
         else if (state == State.Result && !passed)
         {
-            // แพ้ -> เริ่มด่านเดิมใหม่เองอัตโนมัติ
-            if (Time.time >= retryTime) GoToLevel(levelIndex);
+            // แพ้ -> เริ่มด่านเดิมใหม่เองอัตโนมัติ (ยกเว้นกำลังให้เลือกดูโฆษณา)
+            if (!offeringAd && Time.time >= retryTime) GoToLevel(levelIndex);
         }
-        else if (state == State.Result &&
+        else if (state == State.Result && levelIndex + 1 < levels.Count &&
                  (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.Return)))
         {
-            if (levelIndex + 1 < levels.Count) GoToLevel(levelIndex + 1);
-            else GoToLevel(0);
+            ShowInterstitialThen(() => GoToLevel(levelIndex + 1));
         }
+    }
+
+    // จังหวะเปลี่ยนด่าน/ฉาก -> อาจขึ้น interstitial ก่อน (AdsManager คุมความถี่เอง)
+    void ShowInterstitialThen(System.Action next)
+    {
+        if (adShowing) return;
+        adShowing = true;
+        AdsManager.ShowInterstitial(() =>
+        {
+            adShowing = false;
+            next();
+        });
     }
 
     // จอดำ -> เริ่มด่าน -> จอสว่างกลับ
@@ -158,6 +176,8 @@ public class GameManager : MonoBehaviour
         totalDots = dots.Count;
         exploded = 0;
         ammoLeft = ammoPerLevel;
+        offeringAd = false;
+        usedAdContinue = false;
 
         player.ResetForLevel(playerStart);
         state = State.Playing;
@@ -167,6 +187,9 @@ public class GameManager : MonoBehaviour
         ui.ShowScore(exploded, CurrentLevel.goal, totalDots);
         ui.ShowAmmo(ammoLeft);
         ui.HideMessage();
+        ui.HideGameEnd();
+        ui.HideFail();
+        AdsManager.HideBanner();    // กำลังเล่น -> ไม่ให้ banner บัง dot
     }
 
     void SpawnDots(ChainDot prefab, int count, Vector2 avoid)
@@ -206,24 +229,77 @@ public class GameManager : MonoBehaviour
         passed = exploded >= CurrentLevel.goal;
 
         if (!passed)
-            Fail($"NOT ENOUGH!\n{exploded} / {CurrentLevel.goal}");
+            Fail($"NOT ENOUGH!\n{exploded} / {CurrentLevel.goal}", true);
         else
         {
             state = State.Result;
+            AdsManager.ShowBanner();
             if (levelIndex + 1 < levels.Count)
                 ui.ShowMessage($"LEVEL CLEAR!\n{exploded} / {totalDots}\n\nPress Space for next level");
             else
-                ui.ShowMessage("YOU WIN!\n\nPress Space to play again");
+                ui.ShowGameEnd();   // ด่านสุดท้าย -> ขึ้น panel GameEnd
         }
     }
 
-    void Fail(string message)
+    // canWatchAd: แพ้เพราะกระสุนหมด -> เสนอดูโฆษณา Rewarded แลกกระสุน +1 (ถ้าโฆษณาพร้อม)
+    void Fail(string message, bool canWatchAd)
     {
         if (state == State.Loading) return;     // กำลังเปลี่ยนด่านอยู่แล้ว
         state = State.Result;
         passed = false;
-        retryTime = Time.time + retryDelay;
-        ui.ShowMessage(message);
+        AdsManager.ShowBanner();
+
+        offeringAd = canWatchAd && !usedAdContinue && AdsManager.IsRewardedReady;
+        if (offeringAd)
+            ui.ShowFail(message);
+        else
+        {
+            retryTime = Time.time + retryDelay;
+            ui.ShowMessage(message);
+        }
+    }
+
+    // ---------- ปุ่มใน panel FailPanel ----------
+
+    public void WatchAdForAmmo()
+    {
+        if (offeringAd) AdsManager.ShowRewarded(ContinueWithBonusAmmo);
+    }
+
+    // ดูโฆษณาจบ -> ได้กระสุน +1 เล่นด่านเดิมต่อจากที่ค้างไว้
+    void ContinueWithBonusAmmo()
+    {
+        if (!offeringAd || state != State.Result) return;
+        offeringAd = false;
+        usedAdContinue = true;
+        ammoLeft++;
+        ui.ShowAmmo(ammoLeft);
+        ui.HideFail();
+        AdsManager.HideBanner();
+        state = State.Playing;
+    }
+
+    public void RetryLevel()
+    {
+        offeringAd = false;
+        GoToLevel(levelIndex);
+    }
+
+    // ---------- ปุ่มใน panel GameEnd ----------
+
+    public void PlayAgain()
+    {
+        GoToLevel(0);
+    }
+
+    public void BackToMainMenu()
+    {
+        if (state == State.Loading) return;
+        ShowInterstitialThen(() =>
+        {
+            state = State.Loading;
+            SceneFader.FadeTo("MainMenu");
+        });
     }
 
     // ---------- เรียกจากสคริปต์อื่น ----------
@@ -243,7 +319,7 @@ public class GameManager : MonoBehaviour
 
     public void OnPlayerDied()
     {
-        Fail("GAME OVER");
+        Fail("GAME OVER", false);
     }
 
     public void OnDotExploded(ChainDot dot)

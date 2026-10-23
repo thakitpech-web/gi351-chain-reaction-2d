@@ -132,7 +132,7 @@ public class PlayerController : MonoBehaviour
 
     public void TakeDamage(int damage)
     {
-        if (invincible || health <= 0) return;
+        if (invincible || health <= 0 || !GameManager.Instance.IsPlaying) return;
 
         health -= damage;
         GameManager.Instance.OnPlayerHealthChanged(health, maxHealth);

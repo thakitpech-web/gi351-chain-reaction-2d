@@ -9,6 +9,9 @@ public class UiManager : MonoBehaviour
     public TMP_Text ammoText;
     public GameObject messagePanel;
     public TMP_Text messageText;
+    public GameObject gameEndPanel;
+    public GameObject failPanel;            // แพ้ + มีปุ่มดูโฆษณา (Rewarded) / Retry
+    public TMP_Text failText;
 
     public Color normalColor = Color.white;
     public Color goalReachedColor = new Color(0.4f, 1f, 0.5f);
@@ -43,5 +46,28 @@ public class UiManager : MonoBehaviour
     public void HideMessage()
     {
         messagePanel.SetActive(false);
+    }
+
+    public void ShowGameEnd()
+    {
+        messagePanel.SetActive(false);
+        gameEndPanel.SetActive(true);
+    }
+
+    public void HideGameEnd()
+    {
+        gameEndPanel.SetActive(false);
+    }
+
+    public void ShowFail(string message)
+    {
+        messagePanel.SetActive(false);
+        failPanel.SetActive(true);
+        failText.text = message;
+    }
+
+    public void HideFail()
+    {
+        failPanel.SetActive(false);
     }
 }
