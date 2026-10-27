@@ -18,6 +18,8 @@ public class LevelData
         this.squares = squares;
         this.goal = goal;
     }
+
+    public int TotalDots => circles + triangles + squares;
 }
 
 public class GameManager : MonoBehaviour
@@ -37,7 +39,6 @@ public class GameManager : MonoBehaviour
 
     [Header("Rules")]
     public int ammoPerLevel = 1;            // ยิงได้กี่นัดต่อด่าน
-    public float retryDelay = 1f;           // แพ้แล้วรอกี่วินาทีก่อนเริ่มด่านใหม่อัตโนมัติ (0 = ทันที)
 
     [Header("Juice")]
     [Range(0f, 1f)] public float chainRumble = 0.35f;   // จอสั่นเบาๆ ค้างไว้ตลอดที่ยังมีระเบิดอยู่บนจอ
@@ -62,20 +63,25 @@ public class GameManager : MonoBehaviour
 
     public Rect PlayArea { get; private set; }
 
+    // Result = ขึ้น Level Panel รอผู้เล่นกดเล่นด่าน pendingLevel
     enum State { Playing, Result, Loading }
 
     State state;
     int levelIndex;
+    int pendingLevel;
     int exploded;
     int totalDots;
     int ammoLeft;
-    bool passed;
-    float retryTime;
+    int totalShots;         // ยิงไปกี่นัดตั้งแต่ด่าน 1 (นับรวมตอนเล่นด่านซ้ำด้วย)
+    int totalScore;         // รวม dot ที่ระเบิดในด่านที่ผ่านแล้ว
     readonly List<ChainDot> dots = new List<ChainDot>();
     readonly List<Explosion> explosions = new List<Explosion>();
     readonly List<Bullet> bullets = new List<Bullet>();
 
     LevelData CurrentLevel => levels[levelIndex];
+
+    // จบด่านแล้ว (ผ่าน/แพ้/กำลังเปลี่ยนด่าน) -> player ไม่โดน damage
+    public bool IsPlaying => state == State.Playing;
 
     void Awake()
     {
@@ -85,6 +91,8 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
+        totalShots = 0;
+        totalScore = 0;
         StartLevel(0);
     }
 
@@ -93,11 +101,21 @@ public class GameManager : MonoBehaviour
         UpdatePlayArea();
         ScreenShake.SetRumble(explosions.Count > 0 ? chainRumble : 0f);
 
-        if (Input.GetKeyDown(KeyCode.R))
+        if (state == State.Playing && Input.GetKeyDown(KeyCode.R))
         {
             GoToLevel(levelIndex);
             return;
         }
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        // ทดสอบ: กด E = ผ่านด่านทันที (นับว่าได้ goal พอดี) ใช้ได้แค่ใน Editor / Development Build
+        if (state == State.Playing && Input.GetKeyDown(KeyCode.E))
+        {
+            exploded = Mathf.Max(exploded, CurrentLevel.goal);
+            EndLevel();
+            return;
+        }
+#endif
 
         // จบด่านเมื่อ: ไม่มีกระสุน/ระเบิดค้างอยู่ และ (กระสุนหมด หรือ dot หมดจอ)
         if (state == State.Playing && bullets.Count == 0 && explosions.Count == 0 &&
@@ -105,17 +123,19 @@ public class GameManager : MonoBehaviour
         {
             EndLevel();
         }
-        else if (state == State.Result && !passed)
-        {
-            // แพ้ -> เริ่มด่านเดิมใหม่เองอัตโนมัติ
-            if (Time.time >= retryTime) GoToLevel(levelIndex);
-        }
         else if (state == State.Result &&
                  (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.Return)))
         {
-            if (levelIndex + 1 < levels.Count) GoToLevel(levelIndex + 1);
-            else GoToLevel(0);
+            PlayLevel();
         }
+    }
+
+    // จบด่าน -> ขึ้น Level Panel: ผลด่านที่แล้ว + ข้อมูลด่าน index ที่จะเล่นต่อ -> รอกด Space
+    void ShowLevelPanel(int index, string result, bool passed)
+    {
+        pendingLevel = index;
+        state = State.Result;
+        ui.ShowLevelPanel(result, passed, index + 1, levels[index].goal, levels[index].TotalDots, totalScore);
     }
 
     // จอดำ -> เริ่มด่าน -> จอสว่างกลับ
@@ -166,7 +186,8 @@ public class GameManager : MonoBehaviour
         ui.ShowLevel(levelIndex + 1, levels.Count);
         ui.ShowScore(exploded, CurrentLevel.goal, totalDots);
         ui.ShowAmmo(ammoLeft);
-        ui.HideMessage();
+        ui.HideLevelPanel();
+        ui.HideGameEnd();
     }
 
     void SpawnDots(ChainDot prefab, int count, Vector2 avoid)
@@ -203,27 +224,45 @@ public class GameManager : MonoBehaviour
 
     void EndLevel()
     {
-        passed = exploded >= CurrentLevel.goal;
+        int goal = CurrentLevel.goal;
 
-        if (!passed)
-            Fail($"NOT ENOUGH!\n{exploded} / {CurrentLevel.goal}");
+        if (exploded < goal)
+            ShowLevelPanel(levelIndex, $"Not Enough! ONLY GOT {exploded}/{goal}", false);
         else
         {
-            state = State.Result;
+            totalScore += exploded;
             if (levelIndex + 1 < levels.Count)
-                ui.ShowMessage($"LEVEL CLEAR!\n{exploded} / {totalDots}\n\nPress Space for next level");
+                ShowLevelPanel(levelIndex + 1, $"GOOD JOB! YOU GOT {exploded}/{goal}", true);
             else
-                ui.ShowMessage("YOU WIN!\n\nPress Space to play again");
+            {
+                state = State.Result;
+                ui.ShowGameEnd(totalShots, totalScore);    // ด่านสุดท้าย -> ขึ้น panel GameEnd
+            }
         }
     }
 
-    void Fail(string message)
+    // กด Space / Enter ตอน Level Panel ขึ้น
+    void PlayLevel()
     {
-        if (state == State.Loading) return;     // กำลังเปลี่ยนด่านอยู่แล้ว
-        state = State.Result;
-        passed = false;
-        retryTime = Time.time + retryDelay;
-        ui.ShowMessage(message);
+        if (!ui.levelPanel.activeSelf) return;     // ตอนขึ้น GameEnd ไม่ใช้ Space
+        GoToLevel(pendingLevel);
+    }
+
+    // ---------- ปุ่มใน panel GameEnd ----------
+
+    public void PlayAgain()
+    {
+        if (state == State.Loading) return;
+        totalShots = 0;
+        totalScore = 0;
+        GoToLevel(0);
+    }
+
+    public void BackToMainMenu()
+    {
+        if (state == State.Loading) return;
+        state = State.Loading;
+        SceneFader.FadeTo("MainMenu");
     }
 
     // ---------- เรียกจากสคริปต์อื่น ----------
@@ -232,6 +271,7 @@ public class GameManager : MonoBehaviour
     {
         if (state != State.Playing || ammoLeft <= 0) return false;
         ammoLeft--;
+        totalShots++;
         ui.ShowAmmo(ammoLeft);
         return true;
     }
@@ -243,7 +283,8 @@ public class GameManager : MonoBehaviour
 
     public void OnPlayerDied()
     {
-        Fail("GAME OVER");
+        if (state != State.Playing) return;
+        ShowLevelPanel(levelIndex, "GAME OVER! YOU GOT HIT", false);
     }
 
     public void OnDotExploded(ChainDot dot)
