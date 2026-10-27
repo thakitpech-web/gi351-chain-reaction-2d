@@ -10,7 +10,7 @@ public class ChainDot : MonoBehaviour
     public float minSpeed = 1f;
     public float maxSpeed = 2f;
     public float maxSpin = 90f;         // ความเร็วหมุนสุ่ม -maxSpin..maxSpin (องศา/วินาที)
-    public bool randomColor = true;
+    public bool randomColor = false;    // เปิด = สุ่มเฉดเทา (โน้ตเป็นขาวดำอยู่แล้ว ปิดไว้จะได้สีเดิมของรูป)
 
     [Header("Spawn")]
     public float popTime = 0.35f;       // เวลาเด้งโผล่ตอนเริ่มด่าน
@@ -19,6 +19,12 @@ public class ChainDot : MonoBehaviour
     [Range(0f, 0.9f)] public float squashAmount = 0.35f;
     public float squashStiffness = 300f;
     public float squashDamping = 10f;
+
+    [Header("Bounce Sound (ชนขอบจอ)")]
+    [Range(0f, 1f)] public float bounceVolume = 0.35f;
+    public float bounceSoundGap = 0.06f;    // dot เยอะชนพร้อมกัน -> เล่นห่างกันอย่างน้อยเท่านี้ (วินาที) จะได้ไม่ดังรัว
+
+    static float nextBounceSoundTime;       // ใช้ร่วมกันทุก dot
 
     [Header("Pulse (ระหว่างลอย)")]
     [Range(0f, 0.5f)] public float pulseAmount = 0.06f;
@@ -104,7 +110,7 @@ public class ChainDot : MonoBehaviour
         rb.angularVelocity = Random.Range(-maxSpin, maxSpin);
 
         if (randomColor)
-            sr.color = Random.ColorHSV(0f, 1f, 0.5f, 0.8f, 0.9f, 1f);
+            sr.color = Random.ColorHSV(0f, 1f, 0f, 0f, 0.6f, 1f);   // saturation 0 = เทา
 
         Color c = sr.color;
         c.a = trailAlpha;
@@ -180,6 +186,14 @@ public class ChainDot : MonoBehaviour
     {
         squash = amount;
         squashVel = Vector2.zero;
+        PlayBounceSound();
+    }
+
+    void PlayBounceSound()
+    {
+        if (!popped || Time.unscaledTime < nextBounceSoundTime) return;   // ยังเด้งโผล่ไม่เสร็จ / เพิ่งมีเสียงไป
+        nextBounceSoundTime = Time.unscaledTime + bounceSoundGap;
+        SoundManager.Play("Bounce", bounceVolume);
     }
 
     // คืน true ถ้าแตกจริง (false = แตกไปแล้ว)

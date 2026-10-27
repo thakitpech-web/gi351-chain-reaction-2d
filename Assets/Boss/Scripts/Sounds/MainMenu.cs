@@ -22,7 +22,7 @@ public class MainMenu : MonoBehaviour
     {
         settingPanel.SetActive(false);
         Time.timeScale = 1f; // in case we came back from a paused Game Over
-        // MusicManager.Instance.PlayMusic("Main");
+        MusicManager.Instance.PlayMusic("MainMenu");
         
 
         if (PlayerPrefs.HasKey("musicVolume"))
@@ -39,24 +39,24 @@ public class MainMenu : MonoBehaviour
     public void PlayGame()
     {
         SceneFader.FadeTo(gameplayScene);
-        // MusicManager.Instance.PlayMusic("Level");
-        // SoundManager.Instance.PlaySound2D("Button");
+        MusicManager.Instance.PlayMusic("Gameplay");
+        SoundManager.Instance.PlaySound2D("Button");
     }
 
     public void OpenSetting()
     {
         settingPanel.SetActive(true);
-        // SoundManager.Instance.PlaySound2D("Button");
+        SoundManager.Instance.PlaySound2D("Button");
     }
     public void Close()
     {
         settingPanel.SetActive(false);
-        // SoundManager.Instance.PlaySound2D("Button");
+        SoundManager.Instance.PlaySound2D("Button");
     }
 
     public void BackToMainMenu()
     {
-        // SoundManager.Instance.PlaySound2D("Button");
+        SoundManager.Instance.PlaySound2D("Button");
         SceneManager.LoadScene("Main");
     }
 

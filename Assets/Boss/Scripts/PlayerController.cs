@@ -10,7 +10,8 @@ public class PlayerController : MonoBehaviour
 
     [Header("Shoot")]
     public Bullet bulletPrefab;
-    public Transform gun;               // (ไม่ใส่ก็ได้) ส่วนที่หมุนตามเมาส์ ให้ sprite ชี้ไปทางขวา (+X)
+    public float headAngleOffset = -90f;    // รูป player หันหัวขึ้น (+Y) -> -90 ให้หัวชี้ไปทางเมาส์ (ถ้ารูปหันขวาให้ใส่ 0)
+    public Transform gun;               // (ไม่ใส่ก็ได้) จุดหมุนเล็งตามเมาส์ (ไม่มีรูป) มี Firepoint อยู่ข้างใน
     public Transform firePoint;         // (ไม่ใส่ก็ได้) จุดที่กระสุนออก ถ้าไม่ใส่จะออกจากกลางตัว
     public float bulletSpeed = 12f;
     public float fireCooldown = 0.2f;
@@ -19,16 +20,18 @@ public class PlayerController : MonoBehaviour
     [Header("Shoot Feel")]
     public float recoilForce = 4f;      // ตัว player ถูกถีบถอยหลัง (ความเร็วตอนเริ่ม หน่วย/วินาที)
     public float recoilDecay = 10f;     // แรงถีบหายเร็วแค่ไหน
-    public float gunKick = 0.3f;        // ปืนกระตุกถอยหลังเท่าไหร่ (local)
-    public float gunKickRecover = 12f;
     public float muzzleFlashSize = 0.5f;
-    public Color muzzleFlashColor = new Color(1f, 0.95f, 0.6f);
+    public Color muzzleFlashColor = Color.white;
+
+    [Header("Look")]
+    // รูปเป็นเส้นดินสอโปร่งแสง ย้อมดำแล้วก็ยังจาง -> วาดรูปเดิมซ้อนกันหลายชั้นให้เส้นทึบขึ้น (1 = ปกติ)
+    [Range(1, 6)] public int inkLayers = 3;
 
     [Header("Health")]
     public int maxHealth = 3;
     public float invincibleTime = 1.5f;
     public float blinkInterval = 0.1f;
-    public Color hitColor = new Color(1f, 0.25f, 0.25f);   // สีตอนกะพริบหลังโดนชน
+    public Color hitColor = new Color(1f, 1f, 1f, 0.25f);  // สีตอนกะพริบหลังโดนชน (ขาวจางๆ)
     [Range(0f, 1f)] public float hitShake = 0.6f;
     public float hitStop = 0.08f;       // หยุดเวลาแว้บตอนโดนชน (วินาที)
 
@@ -40,17 +43,34 @@ public class PlayerController : MonoBehaviour
     int health;
     bool invincible;
     Vector2 recoil;
-    float kick;
-    Vector3 gunBasePos;
 
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
         rb.bodyType = RigidbodyType2D.Kinematic;
-        renderers = GetComponentsInChildren<SpriteRenderer>();
+        AddInkLayers();
+        renderers = GetComponentsInChildren<SpriteRenderer>();     // รวมชั้นที่ซ้อนด้วย จะได้กะพริบตอนโดนชนไปด้วยกัน
         baseColors = new Color[renderers.Length];
         for (int i = 0; i < renderers.Length; i++) baseColors[i] = renderers[i].color;
-        if (gun != null) gunBasePos = gun.localPosition;
+    }
+
+    void AddInkLayers()
+    {
+        SpriteRenderer main = GetComponent<SpriteRenderer>();
+        if (main == null) return;
+
+        for (int i = 1; i < inkLayers; i++)
+        {
+            SpriteRenderer copy = new GameObject("Ink" + i).AddComponent<SpriteRenderer>();
+            copy.transform.SetParent(transform, false);
+            copy.sprite = main.sprite;
+            copy.color = main.color;
+            copy.sharedMaterial = main.sharedMaterial;
+            copy.flipX = main.flipX;
+            copy.flipY = main.flipY;
+            copy.sortingLayerID = main.sortingLayerID;
+            copy.sortingOrder = main.sortingOrder;
+        }
     }
 
     public void ResetForLevel(Vector2 position)
@@ -60,7 +80,6 @@ public class PlayerController : MonoBehaviour
         SetHurt(false);
         invincible = false;
         recoil = Vector2.zero;
-        kick = 0f;
 
         transform.position = position;
         rb.position = position;
@@ -77,12 +96,9 @@ public class PlayerController : MonoBehaviour
         Vector2 aim = mouse - (Vector2)transform.position;
         float angle = Mathf.Atan2(aim.y, aim.x) * Mathf.Rad2Deg;
 
-        if (gun != null)
-        {
-            gun.rotation = Quaternion.Euler(0f, 0f, angle);
-            kick = Mathf.Lerp(kick, 0f, 1f - Mathf.Exp(-gunKickRecover * Time.deltaTime));
-            gun.localPosition = gunBasePos - gun.localRotation * Vector3.right * kick;
-        }
+        // หันหัวตามเมาส์ทันที (ทั้งตัว) แล้วตั้งจุดเล็งให้ชี้ไปทางเมาส์พอดี
+        transform.rotation = Quaternion.Euler(0f, 0f, angle + headAngleOffset);
+        if (gun != null) gun.rotation = Quaternion.Euler(0f, 0f, angle);
 
         if (Input.GetMouseButtonDown(0) && Time.time >= nextFireTime)
             Shoot(aim.normalized, angle);
@@ -103,6 +119,7 @@ public class PlayerController : MonoBehaviour
     {
         if (!GameManager.Instance.TryUseAmmo()) return;
         nextFireTime = Time.time + fireCooldown;
+        SoundManager.Play("8bit_Shoot");
 
         Vector3 spawnPos = firePoint != null ? firePoint.position : transform.position;
         Quaternion rotation = Quaternion.Euler(0f, 0f, angle);
@@ -111,7 +128,6 @@ public class PlayerController : MonoBehaviour
 
         ScreenShake.Add(shootShake);
         recoil = -direction * recoilForce;
-        kick = gunKick;
 
         SpriteRenderer bulletSr = bulletPrefab.GetComponent<SpriteRenderer>();
         if (bulletSr != null)
@@ -136,6 +152,7 @@ public class PlayerController : MonoBehaviour
 
         health -= damage;
         GameManager.Instance.OnPlayerHealthChanged(health, maxHealth);
+        SoundManager.Play("8bit_Hit");
         ScreenShake.Add(hitShake);
         TimeFx.HitStop(hitStop);
         DamageVignette.Flash();

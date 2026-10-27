@@ -1,13 +1,13 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-// ขอบจอแดงแว้บตอน player โดนชน
+// ขอบจอดำแว้บตอน player โดนชน
 // ไม่ต้องวางในฉาก สร้าง canvas + รูปขอบจอเองตอนถูกเรียกครั้งแรก
 public class DamageVignette : MonoBehaviour
 {
     const float FadeTime = 0.5f;        // จางหายในกี่วินาที
     const int SortingOrder = 500;       // เหนือ UI เกม แต่ใต้ SceneFader (999)
-    static readonly Color Tint = new Color(1f, 0.1f, 0.1f);
+    static readonly Color Tint = Color.black;
 
     static DamageVignette instance;
 

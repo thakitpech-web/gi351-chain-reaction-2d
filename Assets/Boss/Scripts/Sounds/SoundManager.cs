@@ -35,6 +35,13 @@ public class SoundManager : MonoBehaviour
         PlaySound3D(sfxLibrary.GetClipFromName(soundName), pos);
     }
  
+    // Safe to call from any scene: does nothing when the SoundManager (lives in MainMenu) isn't loaded,
+    // e.g. when pressing Play straight from the Gameplay scene.
+    public static void Play(string soundName, float volume = 1f)
+    {
+        if (Instance != null) Instance.PlaySound2D(soundName, volume);
+    }
+
     public void PlaySound2D(string soundName, float volume = 1f)
     {
         AudioClip clip = sfxLibrary.GetClipFromName(soundName);

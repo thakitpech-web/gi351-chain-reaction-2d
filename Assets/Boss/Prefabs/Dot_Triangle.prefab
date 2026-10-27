@@ -79,7 +79,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 1
-  m_Sprite: {fileID: 7482667652216324306, guid: 75f5f34dc1b5347e0b8351032682f224, type: 3}
+  m_Sprite: {fileID: -8014194447238933535, guid: 2b48da24cbf7b3e44b8bc00f6069a953, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -154,8 +154,8 @@ PolygonCollider2D:
   m_Offset: {x: 0, y: 0}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.5, y: 0.28866667}
-    oldSize: {x: 1, y: 1}
+    pivot: {x: 0.5, y: 0.5}
+    oldSize: {x: 0.9689999, y: 1.1169999}
     newSize: {x: 1, y: 1}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
@@ -164,8 +164,9 @@ PolygonCollider2D:
   m_Points:
     m_Paths:
     - - {x: 0, y: 0.5773587}
-      - {x: -0.5, y: -0.28866667}
-      - {x: 0.5, y: -0.28866667}
+      - {x: -0.5347829, y: -0.36693025}
+      - {x: -0.14107251, y: -0.6218341}
+      - {x: 0.6739192, y: 0.050475717}
   m_UseDelaunayMesh: 0
 --- !u!114 &1154150561840278224
 MonoBehaviour:
@@ -184,4 +185,14 @@ MonoBehaviour:
   minSpeed: 1
   maxSpeed: 2
   maxSpin: 90
-  randomColor: 1
+  randomColor: 0
+  popTime: 0.35
+  squashAmount: 0.35
+  squashStiffness: 300
+  squashDamping: 10
+  pulseAmount: 0.06
+  pulseSpeed: 4
+  trailTime: 0.25
+  trailAlpha: 0.35
+  trailWidth: 0.7
+  spawnDelay: 0

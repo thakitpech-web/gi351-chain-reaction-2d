@@ -6,7 +6,7 @@ public class ChainLink : MonoBehaviour
 {
     const float Life = 0.25f;           // อยู่นานกี่วินาที
     const float Width = 0.08f;
-    const float WhiteMix = 0.5f;        // ผสมขาวเข้าไปให้สว่างกว่าสีระเบิด
+    const float InkMix = 0.85f;         // ผสมดำเข้าไป ให้เป็นเส้นหมึกเข้มบนพื้นกระดาษ
     const int SortingOrder = 3;         // เหนือ dot/กระสุน ใต้ player
 
     LineRenderer line;
@@ -16,7 +16,7 @@ public class ChainLink : MonoBehaviour
     public static void Spawn(Vector2 from, Vector2 to, Color color)
     {
         ChainLink link = new GameObject("ChainLink").AddComponent<ChainLink>();
-        link.color = Color.Lerp(color, Color.white, WhiteMix);
+        link.color = Color.Lerp(color, Color.black, InkMix);
         link.color.a = 1f;
 
         LineRenderer line = link.gameObject.AddComponent<LineRenderer>();

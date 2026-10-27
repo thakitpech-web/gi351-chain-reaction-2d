@@ -48,6 +48,9 @@ public class GameManager : MonoBehaviour
     public float goalSlowMoHold = 0.6f;     // ค้างช้าไว้นานเท่าไหร่ (วินาทีจริง)
     public float goalSlowMoRecover = 0.4f;  // ค่อยๆ กลับเป็นปกติในกี่วินาที
 
+    [Header("Sound")]
+    [Range(0f, 1f)] public float chainVolume = 0.6f;    // เสียง dot แตก (chain ยาวๆ เสียงซ้อนกันเยอะ เลยเบาลงนิด)
+
     [Header("Levels")]
     public List<LevelData> levels = new List<LevelData>
     {
@@ -227,16 +230,23 @@ public class GameManager : MonoBehaviour
         int goal = CurrentLevel.goal;
 
         if (exploded < goal)
+        {
             ShowLevelPanel(levelIndex, $"Not Enough! ONLY GOT {exploded}/{goal}", false);
+            SoundManager.Play("8bit_Fail");
+        }
         else
         {
             totalScore += exploded;
             if (levelIndex + 1 < levels.Count)
+            {
                 ShowLevelPanel(levelIndex + 1, $"GOOD JOB! YOU GOT {exploded}/{goal}", true);
+                SoundManager.Play("8bit_Pass");
+            }
             else
             {
                 state = State.Result;
                 ui.ShowGameEnd(totalShots, totalScore);    // ด่านสุดท้าย -> ขึ้น panel GameEnd
+                SoundManager.Play("8bit_GameEnd");
             }
         }
     }
@@ -245,6 +255,7 @@ public class GameManager : MonoBehaviour
     void PlayLevel()
     {
         if (!ui.levelPanel.activeSelf) return;     // ตอนขึ้น GameEnd ไม่ใช้ Space
+        SoundManager.Play("8bit_Button");
         GoToLevel(pendingLevel);
     }
 
@@ -253,6 +264,7 @@ public class GameManager : MonoBehaviour
     public void PlayAgain()
     {
         if (state == State.Loading) return;
+        SoundManager.Play("8bit_Button");
         totalShots = 0;
         totalScore = 0;
         GoToLevel(0);
@@ -261,6 +273,7 @@ public class GameManager : MonoBehaviour
     public void BackToMainMenu()
     {
         if (state == State.Loading) return;
+        SoundManager.Play("8bit_Button");
         state = State.Loading;
         SceneFader.FadeTo("MainMenu");
     }
@@ -285,6 +298,7 @@ public class GameManager : MonoBehaviour
     {
         if (state != State.Playing) return;
         ShowLevelPanel(levelIndex, "GAME OVER! YOU GOT HIT", false);
+        SoundManager.Play("8bit_GameOver");
     }
 
     public void OnDotExploded(ChainDot dot)
@@ -292,10 +306,14 @@ public class GameManager : MonoBehaviour
         dots.Remove(dot);
         exploded++;
         ui.ShowScore(exploded, CurrentLevel.goal, totalDots);
+        SoundManager.Play("Chain", chainVolume);   // กลุ่ม Chain มี 3 เสียง สุ่มเล่น จะได้ไม่ซ้ำตอน chain ยาวๆ
 
         // ลูกที่ทำให้ถึง goal พอดี -> slow-mo
         if (exploded == CurrentLevel.goal)
+        {
             TimeFx.SlowMo(goalSlowMo, goalSlowMoHold, goalSlowMoRecover);
+            SoundManager.Play("8bit_Goal");
+        }
     }
 
     public void RegisterExplosion(Explosion e) => explosions.Add(e);
