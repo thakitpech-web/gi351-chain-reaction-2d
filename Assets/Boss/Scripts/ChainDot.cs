@@ -43,6 +43,9 @@ public class ChainDot : MonoBehaviour
     Vector2 squash = Vector2.one;
     Vector2 squashVel;
     bool exploded;
+    Color normalColor;
+    Color grayColor;
+    float grayLevel;
 
     void Awake()
     {
@@ -54,6 +57,7 @@ public class ChainDot : MonoBehaviour
         baseScale = transform.localScale;
         transform.localScale = baseScale * 0.01f;   // ซ่อนไว้ก่อน รอเด้งโผล่
         pulsePhase = Random.Range(0f, Mathf.PI * 2f);
+        grayLevel = Random.value < 0.5f ? Random.Range(0.85f, 1f) : Random.Range(0.3f, 0.45f); // ขาว หรือ เทาเข้ม
 
         BuildVisual();
         BuildTrail();
@@ -105,6 +109,23 @@ public class ChainDot : MonoBehaviour
 
         if (randomColor)
             sr.color = Random.ColorHSV(0f, 1f, 0.5f, 0.8f, 0.9f, 1f);
+
+        normalColor = sr.color;
+        grayColor = new Color(grayLevel, grayLevel, grayLevel, normalColor.a);
+
+        ApplyColor();
+        RemoteConfigManager.OnConfigChanged += ApplyColor;
+    }
+
+    void OnDestroy()
+    {
+        RemoteConfigManager.OnConfigChanged -= ApplyColor;
+    }
+
+    // Remote Config: dot_color_mode = "grayscale" -> ขาวดำ (Halloween), อื่นๆ -> สีปกติ
+    void ApplyColor()
+    {
+        sr.color = RemoteConfigManager.Grayscale ? grayColor : normalColor;
 
         Color c = sr.color;
         c.a = trailAlpha;

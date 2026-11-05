@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 469c24fdb3bd6431b92cc1465bd9166b, type: 3}
+  m_Name: RemoteConfigDataStoreAsset
+  m_EditorClassIdentifier: 
+  _rsKeyList: "[\r\n  {\r\n    \"metadata\": {\r\n      \"entityId\": \"a0ab64cf-71f0-4839-946e-19fc11a7af1b\"\r\n   
+    },\r\n    \"rs\": {\r\n      \"key\": \"dot_color_mode\",\r\n      \"type\":
+    \"string\",\r\n      \"value\": \"random\"\r\n    }\r\n  },\r\n  {\r\n    \"metadata\":
+    {\r\n      \"entityId\": \"c22e9b50-055e-43ca-b087-3a30576b8f76\"\r\n    },\r\n   
+    \"rs\": {\r\n      \"key\": \"event_name\",\r\n      \"type\": \"string\",\r\n     
+    \"value\": \"\"\r\n    }\r\n  }\r\n]"
+  _rsLastCachedKeyList: "[\r\n  {\r\n    \"metadata\": {\r\n      \"entityId\": \"a0ab64cf-71f0-4839-946e-19fc11a7af1b\"\r\n   
+    },\r\n    \"rs\": {\r\n      \"key\": \"dot_color_mode\",\r\n      \"type\":
+    \"string\",\r\n      \"value\": \"random\"\r\n    }\r\n  },\r\n  {\r\n    \"metadata\":
+    {\r\n      \"entityId\": \"c22e9b50-055e-43ca-b087-3a30576b8f76\"\r\n    },\r\n   
+    \"rs\": {\r\n      \"key\": \"event_name\",\r\n      \"type\": \"string\",\r\n     
+    \"value\": \"\"\r\n    }\r\n  }\r\n]"
+  _environments: "[\r\n  {\r\n    \"projectId\": \"259acd2b-b1c8-4aac-8327-4baad4eedc47\",\r\n   
+    \"name\": \"production\",\r\n    \"id\": \"ff71671a-d9fc-4a0e-9fef-5b8975ab2d18\",\r\n   
+    \"isDefault\": true,\r\n    \"createdAt\": \"2026-11-05T14:39:45Z\",\r\n    \"updatedAt\":
+    \"2026-11-05T14:39:45Z\"\r\n  },\r\n  {\r\n    \"projectId\": \"259acd2b-b1c8-4aac-8327-4baad4eedc47\",\r\n   
+    \"name\": \"development\",\r\n    \"id\": \"80724396-e949-471d-99ed-41051dd5bdd7\",\r\n   
+    \"isDefault\": false,\r\n    \"createdAt\": \"2026-11-05T14:42:50Z\",\r\n   
+    \"updatedAt\": \"2026-11-05T14:42:50Z\"\r\n  }\r\n]"

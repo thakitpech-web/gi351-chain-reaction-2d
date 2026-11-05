@@ -675,6 +675,7 @@ PlayerSettings:
   scriptingDefineSymbols:
     Android: LEVELPLAY_DEPENDENCIES_INSTALLED
     Standalone: LEVELPLAY_DEPENDENCIES_INSTALLED
+    WebGL: LEVELPLAY_DEPENDENCIES_INSTALLED
   additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend:
@@ -773,11 +774,11 @@ PlayerSettings:
   captureStartupLogs: {}
   activeInputHandler: 2
   windowsGamepadBackendHint: 0
-  cloudProjectId: ad2ef82b-ec8e-43c4-bac1-08d4b2c33e2a
+  cloudProjectId: 259acd2b-b1c8-4aac-8327-4baad4eedc47
   framebufferDepthMemorylessMode: 0
   qualitySettingsNames: []
   projectName: rapid_3
-  organizationId: okasakii
+  organizationId: sakonwat
   cloudEnabled: 0
   legacyClampBlendShapeWeights: 0
   hmiLoadingImage: {fileID: 0}
